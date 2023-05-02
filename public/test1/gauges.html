@@ -1,0 +1,84 @@
+<html>
+
+<head>
+  <title>Express THING22345</title>
+  
+ 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.css">
+  <script src="https://toorshia.github.io/justgage/raphael.min.js"></script>
+  <script src="https://toorshia.github.io/justgage/justgage.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+ <!-- topnav -->
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+ <link rel="stylesheet" href="/stylesheets/style.css"/>
+</head>
+
+<body>
+  <div class="topnav" id="myTopnav">
+    <a  href="../index.html">Home</a>
+    <a href="../logs.html">Logs</a>
+    <a href="/moisture.html">Moisture</a>
+    <a href="/test1/gauges.html" class="active">Gauges</a>
+    <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+      <i class="fa fa-bars"></i>
+    </a>
+  </div> 
+  
+  <center>Current Sensor Readings</center>
+  <div id="gauges">
+
+  </div>
+
+  <script>
+    let socket = io();
+    let gauges = {};
+    // Client receives message from server
+    socket.on("data", function (data) {
+      // console.log(data);
+      // push the data to the FE(front end)
+      const element = document.querySelector("#" + data.id);
+      if (element === null) {
+        createGauge(data);
+      }
+      gauges[data.id].refresh(data.value);
+    });
+
+    function createGauge(data) {
+      const newNode = document.createElement('div');
+      const g = document.createElement("div");
+      g.id = data.id;
+      const header = document.createElement("h3");
+      header.innerHTML = data.title;
+      newNode.append(header);
+      newNode.append(g);
+      document.querySelector("#gauges").append(newNode);
+      let maxValues = data.maxVal;
+      gauges[data.id] = new JustGage({
+        id: data.id,
+        value: 67,
+        min: 0,
+        max: data.maxVal,
+        customSectors: data.customSectors,
+        textRenderer: function (value) {
+          return Number(value).toFixed(1).toString() + data.units
+        }
+      });
+    };
+
+// top nav
+/* Toggle between adding and removing the "responsive" class to topnav when the user clicks on the icon */
+function myFunction() {
+  var x = document.getElementById("myTopnav");
+  if (x.className === "topnav") {
+    x.className += " responsive";
+  } else {
+    x.className = "topnav";
+  }
+}
+
+  </script>
+
+</body>
+
+</html>

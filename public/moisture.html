@@ -1,0 +1,133 @@
+<html>
+
+<head>
+  <title>Moisture</title>
+  <link rel="stylesheet" href="/stylesheets/style.css">
+  </link>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.css">
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+    integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+<!-- topnav -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+</head>
+
+<body>
+  <div class="topnav" id="myTopnav">
+    <a  href="../index.html">Home</a>
+    <a href="../logs.html">Logs</a>
+    <a href="/moisture.html" class="active">Moisture</a>
+    <a href="/test1/gauges.html">Gauges</a>
+    <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+      <i class="fa fa-bars"></i>
+    </a>
+  </div> 
+  <h2>
+    <input type="text" name="datetimes" />
+    <button type="button" ; onclick="runChart(mStartTime, mEndTime)" ;>Run Chart</button>
+    <button type="button" ; onclick="console.log('start time:' + mStartTime + ' ;  endtime:' + mEndTime);" ;>see start
+      Unix</button>
+
+    <!-- date widget-->
+    <script>
+      $(function () {
+        $('input[name="datetimes"]').daterangepicker({
+          timePicker: true,
+          startDate: moment().startOf('hour'),
+          endDate: moment().startOf('hour').add(32, 'hour'),
+          locale: {
+            format: 'M/DD hh:mm A'
+          }
+        },
+          function (start, end, label) {
+            console.log("A new date selection was made: " + start.unix() + ' to ' + end.format('YYYY-MM-DD'));
+            mStartTime = start.unix() * 1000;
+            mEndTime = end.unix() * 1000;
+            console.log(mStartTime);
+            console.log(mEndTime);
+          }
+        );
+      });
+
+    </script>
+  </h2>
+
+
+
+
+  <canvas id="myChart" width="400" height="270"></canvas>
+  <script>
+
+    let ctx = document.getElementById('myChart');
+    // Create Chart.js graph
+    let myChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [1, 2, 3, 4, 5, 6, 7, 8],
+        datasets: [{
+          label: "soil moisture snsr 12",
+          data: [55, 54, 66, 11, 22, 58, 98, 87],
+          backgroundColor: [
+            'rgba(255, 99, 132, 0.2)',
+          ],
+          borderColor: [
+            'rgba(255, 99, 132, 1)',
+          ],
+          borderWidth: 1
+        },
+          {
+            label: 'Soil M snsr 13',
+            data: [],
+            backgroundColor: [
+              'rgba(75, 192, 192, 0.2)',
+            ],
+            borderColor: [
+              'rgba(75, 192, 192, 1)',
+            ],
+            borderWidth: 1
+          }]
+      },
+      options: {
+        scales: {
+          yAxes: [{
+            ticks: {
+              beginAtZero: true
+            }
+          }],
+          xAxes: [{
+            ticks: {
+              maxTicksLimit: 50
+            }
+          }]
+
+        }
+      }
+    });
+
+
+    var mStartTime = 1601618146562;
+    var mEndTime = 1601818503117;
+
+    var chartData = [];
+    const runChart = (mStartTime, mEndTime) => {
+      $.get(`/moisture?mStartTime=${mStartTime}&mEndTime=${mEndTime}`, function (getResponse) {
+        chartData = getResponse;
+        console.log(chartData);
+        myChart.data.labels = chartData[0].m12times;
+        myChart.data.datasets[0].data = chartData[0].m12data; 
+        myChart.data.datasets[1].data = chartData[1].m13data; 
+        myChart.update()
+      })
+
+    };
+  </script>
+</body>
+
+</html>
